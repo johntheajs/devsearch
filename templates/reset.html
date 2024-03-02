@@ -1,0 +1,54 @@
+{% extends 'main.html' %}
+
+{% block content %}
+
+<style>
+    input[type='password'],
+    textarea {
+    min-width: 24rem;
+    width: 100%;
+    padding: 1.2rem 1.5rem;
+    border-radius: 0.5rem;
+    border: 2px solid var(--color-light);
+    transition: all 0.3s ease-in-out;
+    background-color: var(--color-bg);
+    }
+
+    input[type='password']:focus,
+    input[type='password']:active{
+    outline: none;
+    border: 2px solid var(--color-main);
+    }
+
+</style>
+
+
+<main class="formPage my-xl">
+    <div class="content-box">
+        <div class="formWrapper">
+            <a class="backButton" href="{% url 'login' %}"><i class="im im-angle-left"></i></a>
+            <br>
+
+            <h3>Enter new password</h3>
+            <br>
+            <p>Please enter your new password twice so we can verify you typed it in correctly.</p>
+            <br>
+
+            <form class="form" method="POST">
+                <!-- Input:Text -->
+                {% csrf_token %}
+                {{form.as_p}}
+                
+
+                <input class="btn btn--sub btn--lg  my-md" type="submit" value="Submit" />
+            </form>
+        </div>
+    </div>
+</main>
+
+{% endblock content %}
+
+
+
+
+
