@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -84,14 +83,16 @@ WSGI_APPLICATION = 'devsearch.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'devsearch',
-        'USER' : 'postgres',
-        'PASSWORD' : 'admin',
-        'HOST' : 'localhost',
+        'NAME': 'cloud-ass',
+        'USER' : 'cloud_ass_user',
+        'PASSWORD' : 'S8XhCavxr62z3QDzgZ3M5WO8pNNH5uJb',
+        'HOST' : 'dpg-cnqs94a0si5c73bsijdg-a',
         'PORT' : '5432',
     }
 }
-
+import dj_database_url
+DATABASE_URL = "postgres://cloud_ass_user:S8XhCavxr62z3QDzgZ3M5WO8pNNH5uJb@dpg-cnqs94a0si5c73bsijdg-a.oregon-postgres.render.com/cloud_ass"
+DATABASES['default'] = dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=True)
 
 
 # DATABASES = {
@@ -100,6 +101,8 @@ DATABASES = {
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+
 
 
 # Password validation
@@ -157,3 +160,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+
+# Load Auth0 application settings into memory
+AUTH0_CLIENT_ID = 'Jgf2iN5VmTDl91tcxioJJgA7zGUyOjYh'
+AUTH0_CLIENT_SECRET = 'Y5RnMQt_DQivAEtsSE5xRHyeQ1no1BDKU02RiQ5xE5Fjnkz_Jo_-RLeLWXs5ykxW'
+AUTH0_DOMAIN = 'dev-6koev8xs41nxklyz.us.auth0.com'

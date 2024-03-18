@@ -6,58 +6,56 @@ from django.contrib.auth.models import User
 from .models import Profile, Message
 from .forms import CustomUserCreationForm, ProfileForm, SkillForm, MessageForm
 from .utils import searchProfiles, paginateProfiles
+from authlib.integrations.django_client import OAuth
+import json
+from urllib.parse import quote_plus, urlencode
+from django.urls import reverse
+from django.conf import settings
 
-def logoutUser(request):
-    logout(request)
-    messages.info(request, "User successfully logged out")
-    return redirect('login')
+oauth = OAuth()
+
+oauth.register(
+    "auth0",
+    client_id=settings.AUTH0_CLIENT_ID,
+    client_secret=settings.AUTH0_CLIENT_SECRET,
+    authorize_url=f"https://{settings.AUTH0_DOMAIN}/authorize",
+    authorize_params=None,
+    token_url=f"https://{settings.AUTH0_DOMAIN}/oauth/token",
+    userinfo_endpoint=f"https://{settings.AUTH0_DOMAIN}/userinfo",
+    userinfo_params=None,
+    client_kwargs={
+        "scope": "openid profile email",
+    },
+)
 
 
-def loginUser(request):
-    page = 'register'
-    if request.user.is_authenticated:
-        return redirect('profiles')
-    if request.method == 'POST':
-        username=request.POST['username'].lower()
-        password = request.POST['password']
 
-        try:
-            user=User.objects.get(username=username)
-        except:
-            messages.error(request, "Username does not exist")
+def callback(request):
+    token = oauth.auth0.authorize_access_token(request)
+    request.session["user"] = token
+    return redirect(request.build_absolute_uri(reverse("accounts")))
 
-        user=authenticate(request, username=username, password=password)
 
-        if user is not None:
-            login(request, user)
-            messages.info(request, "User successfully logged in")
+def login(request):
+    return oauth.auth0.authorize_redirect(
+        request, request.build_absolute_uri(reverse("callback"))
+    )
 
-            return redirect(request.GET['next'] if 'next' in request.GET else 'account')
-        else:
-            messages.error(request, "Credentials wrong")
 
-    return render(request, 'users/login_register.html')
+def logout(request):
+    request.session.clear()
 
-def registerUser(request):
-    page = 'register'
-    form = CustomUserCreationForm()
+    return redirect(
+        f"https://{settings.AUTH0_DOMAIN}/v2/logout?"
+        + urlencode(
+            {
+                "returnTo": request.build_absolute_uri(reverse("projects")),
+                "client_id": settings.AUTH0_CLIENT_ID,
+            },
+            quote_via=quote_plus,
+        ),
+    )
 
-    if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.username = user.username.lower()
-            user.save()
-
-            messages.success(request,'User account was created')
-            login(request, user)
-            return redirect('edit-account')
-
-        else:
-            messages.error(request, 'An error has ocurred')
-
-    context = {'page':page, 'form':form}
-    return render(request, 'users/login_register.html', context)
 
 def profiles(request):
     profiles, search_query = searchProfiles(request)
@@ -65,7 +63,13 @@ def profiles(request):
     custom_range, profiles = paginateProfiles(request, profiles, 3)
 
     context = {'profiles':profiles, 'search_query': search_query, 'custom_range': custom_range}
-    return render(request, 'users/profiles.html', context)
+
+    return render(
+        request,
+        "users/profiles.html",
+        context
+    )
+
 
 def userProfile(request, pk):
     profile = Profile.objects.get(id=pk)
@@ -77,12 +81,12 @@ def userProfile(request, pk):
     context = {'profile': profile, 'topSkills': topSkills, 'otherSkills': otherSkills}
     return render(request, 'users/user-profile.html', context)
 
-@login_required(login_url="login")
 def userAccount(request):
     profile = request.user.profile
     skills = profile.skill_set.all()
     projects = profile.project_set.all()
-    context = {'profile':profile, 'skills': skills, 'projects':projects}
+    context = {'profile':profile, 'skills': skills, 'projects':projects, "session": request.session.get("user"),
+            "pretty": json.dumps(request.session.get("user"), indent=4)}
     return render(request, 'users/account.html', context)
 
 
