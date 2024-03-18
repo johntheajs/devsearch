@@ -31,10 +31,8 @@ oauth.register(
 
 
 def callback(request):
-    token = oauth.auth0.authorize_access_token(request)
-    request.session["user"] = token
-    return redirect(request.build_absolute_uri(reverse("accounts")))
-
+    
+    return redirect('projects')
 
 def login(request):
     return oauth.auth0.authorize_redirect(
@@ -85,8 +83,7 @@ def userAccount(request):
     profile = request.user.profile
     skills = profile.skill_set.all()
     projects = profile.project_set.all()
-    context = {'profile':profile, 'skills': skills, 'projects':projects, "session": request.session.get("user"),
-            "pretty": json.dumps(request.session.get("user"), indent=4)}
+    context = {'profile':profile, 'skills': skills, 'projects':projects}
     return render(request, 'users/account.html', context)
 
 

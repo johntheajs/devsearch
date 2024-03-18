@@ -5,14 +5,18 @@ from django.contrib import messages
 from .models import Project, Tag
 from .forms import ProjectForm, ReviewForm
 from .utils import searchProjects, paginateProjects
-
+import json
+from urllib.parse import quote_plus, urlencode
+from django.urls import reverse
+from django.conf import settings
 
 def projects(request):
 
     projects, search_query = searchProjects(request)
     custom_range, projects = paginateProjects(request, projects, 6)
     
-    context = {'projects':projects, 'search_query': search_query, 'custom_range': custom_range}
+    context = {'projects':projects, 'search_query': search_query, 'custom_range': custom_range , "session": request.session.get("user"),
+            "pretty": json.dumps(request.session.get("user"), indent=4)}
     return render(request, 'projects/projects.html', context)
 
 def project(request, pk):
